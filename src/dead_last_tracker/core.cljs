@@ -6,7 +6,7 @@
 (defn safe-dec [a b]
   (if (neg? (- b a)) 0 (- b a)))
 
-(defonce colors [:green :black :blue :brown :emerald :grey :pink :purple :red :teal :yellow :orange])
+(defonce colors [:red :orange :yellow :emerald :green :teal :blue :purple :pink :brown :grey :black])
 (defonce scores (atom (zipmap colors (repeat 0))))
 (defonce countdown (atom 0))
 (defonce interval (js/setInterval #(swap! countdown (partial safe-dec 1)) 1000))
@@ -29,24 +29,22 @@
 
 (defn color-to-button [lbl]
   (case lbl
-    :green   :div.ui.green.button
-    :black   :div.ui.black.button
-    :blue    :div.ui.blue.button
-    :brown   :div.ui.brown.button
-    :emerald :div.ui.olive.button
-    :grey    :div.ui.grey.button
-    :pink    :div.ui.pink.button
-    :purple  :div.ui.purple.button
-    :red     :div.ui.red.button
-    :teal    :div.ui.teal.button
-    :yellow  :div.ui.yellow.button
-    :orange  :div.ui.orange.button
+    :green   :div.ui.green.button.tiny
+    :black   :div.ui.black.button.tiny
+    :blue    :div.ui.blue.button.tiny
+    :brown   :div.ui.brown.button.tiny
+    :emerald :div.ui.olive.button.tiny
+    :grey    :div.ui.grey.button.tiny
+    :pink    :div.ui.pink.button.tiny
+    :purple  :div.ui.purple.button.tiny
+    :red     :div.ui.red.button.tiny
+    :teal    :div.ui.teal.button.tiny
+    :yellow  :div.ui.yellow.button.tiny
+    :orange  :div.ui.orange.button.tiny
     :div.ui.black.button))
 
 (defn inc-score [color amount]
   (swap! scores (fn [x] (update-in x [color] (partial + amount)))))
-
-
 
 (defn dec-score [color amount]
   (swap! scores (fn [x] (update-in x [color] (partial safe-dec amount)))))
@@ -55,45 +53,33 @@
   (swap! scores (fn [x] (assoc-in x [color] 0))))
 
 (rum/defc score-keeper < rum/reactive [color]
-  [:div.one.wide.center.aligned.column 
-   [(color-to-label color) [:h1 (color (rum/react scores))]]
+  [:div.one.center.aligned.column 
+   [(color-to-label color) [:h1.ui.inverted.header (color (rum/react scores))]]
    [:br][:br]
-   [(color-to-button color) { :on-click (fn [_] (inc-score color 3)) } "+3"]
+   [(color-to-button color) { :on-click (fn [_] (inc-score color 1)) } [:i.plus.icon]]
    [:br][:br]
-   [(color-to-button color) { :on-click (fn [_] (inc-score color 4)) } "+4"]
+   [(color-to-button color) { :on-click (fn [_] (dec-score color 1)) } [:i.minus.icon]]
    [:br][:br]
-   [(color-to-button color) { :on-click (fn [_] (inc-score color 5)) } "+5"]
-   [:br][:br]
-   [(color-to-button color) { :on-click (fn [_] (dec-score color 3)) } "-3"]
-   [:br][:br]
-   [(color-to-button color) { :on-click (fn [_] (dec-score color 4)) } "-4"]
-   [:br][:br]
-   [(color-to-button color) { :on-click (fn [_] (dec-score color 5)) } "-5"]
-   [:br][:br]
-   [(color-to-button color) { :on-click (fn [_] (reset-score color)) } "Reset"]])
+   [(color-to-button color) { :on-click (fn [_] (reset-score color)) } [:i.undo.icon]]])
 
 (rum/defc timer < rum/reactive []
    [:div.sixteen.wide.center.aligned.column
-    [:div.ui.circular.massive.label (rum/react countdown)]
+    [:div.ui.circular.massive.label [:h1.ui.header (rum/react countdown)]]
     [:br][:br]
     [:div.ui.buttons [
-                    [:button.ui.button.active { :on-click (fn [_] (reset! countdown 90)) } "Start"]
+                    [:button.ui.positive.button { :on-click (fn [_] (reset! countdown 90)) } "Start"]
                     [:div.or]
-                    [:button.ui.positive.button { :on-click (fn [_] (reset! countdown 0)) } "Stop"]]]])
+                    [:button.ui.negative.button { :on-click (fn [_] (reset! countdown 0)) } "Stop"]]]])
 
 (rum/defc tracker []
-  [:div.ui.grid 
+  [:div.ui.grid
+   [:div.sixteen.wide.center.aligned.column [:h1.ui.header "Dead Last Tracker"]]
    [:div.two.wide.center.aligned.column]
    (map #(score-keeper %) colors)
    [:div.two.wide.center.aligned.column]
-   (timer)])
+   (timer)
+   [:div.sixteen.wide.center.aligned.column [:button.ui.black.button {:on-click (fn [_] (reset! scores (zipmap colors (repeat 0))))} "Reset All"]]])
 
 (rum/mount (tracker) (. js/document getElementById "app"))
 
-
-
-(defn on-js-reload []
-  ;; optionally touch your app-state to force rerendering depending on
-  ;; your application
-  ;; (swap! app-state update-in [:__figwheel_counter] inc)
-)
+(defn on-js-reload [])
